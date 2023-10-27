@@ -82,3 +82,35 @@ def buy_product(id, quantity_to_buy):
   finally:
     if connection:
       connection.close()
+
+def get_all_products():
+  try:
+    connection = psycopg2.connect(
+      host=DB_HOST,
+      port=DB_PORT,
+      database=DB_NAME,
+      user=DB_USER,
+      password=DB_PASSWORD
+    )
+    cursor = connection.cursor()
+
+    cursor.execute("SELECT * FROM ShoppingCart")
+    result = cursor.fetchall()
+
+    products = []
+    for row in result:
+      product = {
+        "ItemID": row[0],
+        "Name": row[1],
+        "Quantity": row[2]
+      }
+      products.append(product)
+
+    return json.dumps(products)
+
+  except Exception as e:
+    print(f"Error: {e}")
+    return json.dumps({"error": "Ocurrió un error al obtener los productos"})
+  finally:
+    if connection:
+      connection.close()
