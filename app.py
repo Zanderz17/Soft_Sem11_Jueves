@@ -1,4 +1,6 @@
 from flask import Flask
+from utils_db import *
+
 
 # Crea una instancia de la aplicación Flask
 app = Flask(__name__)
@@ -6,8 +8,8 @@ app = Flask(__name__)
 # Define una ruta para la página de inicio
 @app.route('/')
 def hello_world():
-    return 'Hola, Mundo!'
+  return 'Hola, Mundo!'
 
 # Inicia la aplicación si se ejecuta este archivo
 if __name__ == '__main__':
-    app.run()
+  app.run()
