@@ -5,7 +5,6 @@ from utils_db import *
 # Crea una instancia de la aplicación Flask
 app = Flask(__name__)
 
-# Define una ruta para la página de inicio
 @app.route('/')
 def hello_world():
   return 'Hola, Mundo!'
@@ -13,16 +12,12 @@ def hello_world():
 # Ruta para el endpoint /query
 @app.route('/query')
 def query_item():
-  print("fa")
-  # Obtener el parámetro "ItemID" de la URL
   item_id = request.args.get('ItemID')
   product_type = request.args.get('type')
   if item_id is not None:
-    # Llamar a la función see_item y devolver el resultado como JSON
     item_info = see_item(item_id)
     return jsonify(item_info)
   if product_type == 'ALL':
-    print("fa")
     all_products = get_all_products()
     return jsonify(all_products)
   else:
