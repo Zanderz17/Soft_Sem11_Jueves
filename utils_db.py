@@ -65,9 +65,6 @@ def buy_product(id, quantity_to_buy):
 
     product_name, current_quantity = product_info
 
-    if int(current_quantity) < int(quantity_to_buy):
-      return json.dumps({"error": "Cantidad insuficiente en stock"})
-
     # Restar la cantidad comprada del stock
     new_quantity = current_quantity - int(quantity_to_buy)
     cursor.execute("UPDATE ShoppingCart SET Quantity = %s WHERE ItemID = %s", (new_quantity, id))

@@ -43,4 +43,4 @@ def buy_item():
 
 # Inicia la aplicación si se ejecuta este archivo
 if __name__ == '__main__':
-  app.run()
+  app.run(port=5001)
