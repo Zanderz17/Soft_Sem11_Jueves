@@ -46,39 +46,46 @@ def see_item(id):
 
 
 def buy_product(id, quantity_to_buy):
-  try:
-    connection = psycopg2.connect(
-      host=DB_HOST,
-      port=DB_PORT,
-      database=DB_NAME,
-      user=DB_USER,
-      password=DB_PASSWORD
-    )
-    cursor = connection.cursor()
+    try:
+        connection = psycopg2.connect(
+            host=DB_HOST,
+            port=DB_PORT,
+            database=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD
+        )
+        cursor = connection.cursor()
 
-    # Obtener información del producto
-    cursor.execute("SELECT Name, Quantity FROM ShoppingCart WHERE ItemID = %s", (id,))
-    product_info = cursor.fetchone()
+        # Iniciar una transacción
+        connection.set_session(autocommit=False)
 
-    if product_info is None:
-      return json.dumps({"error": "Producto no encontrado"})
+        # Bloquear la fila para evitar conflictos de concurrencia
+        cursor.execute("SELECT Name, Quantity FROM ShoppingCart WHERE ItemID = %s FOR UPDATE", (id,))
+        product_info = cursor.fetchone()
 
-    product_name, current_quantity = product_info
+        if product_info is None:
+            return json.dumps({"error": "Producto no encontrado"})
 
-    # Restar la cantidad comprada del stock
-    new_quantity = current_quantity - int(quantity_to_buy)
-    cursor.execute("UPDATE ShoppingCart SET Quantity = %s WHERE ItemID = %s", (new_quantity, id))
+        product_name, current_quantity = product_info
+        if int(current_quantity) < int(quantity_to_buy):
+          return json.dumps({"error": "Cantidad insuficiente en stock"})
+        # Restar la cantidad comprada del stock
+        new_quantity = current_quantity - int(quantity_to_buy)
 
-    connection.commit()
-    
-    return json.dumps({"message": "Compra exitosa"})
+        cursor.execute("UPDATE ShoppingCart SET Quantity = %s WHERE ItemID = %s", (new_quantity, id))
 
-  except Exception as e:
-    print(f"Error: {e}")
-    return json.dumps({"error": "Ocurrió un error en la compra"})
-  finally:
-    if connection:
-      connection.close()
+        connection.commit()
+        
+        return json.dumps({"message": "Compra exitosa"})
+
+    except Exception as e:
+        connection.rollback()  # Revertir la transacción en caso de error
+        print(f"Error: {e}")
+        return json.dumps({"error": "Ocurrió un error en la compra"})
+    finally:
+        connection.set_session(autocommit=True)  # Restablecer autocommit
+        if connection:
+            connection.close()
 
 def get_all_products():
   try:
